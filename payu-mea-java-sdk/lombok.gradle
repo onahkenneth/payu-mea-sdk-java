@@ -7,7 +7,7 @@ configurations {
 }
 
 dependencies { 
-    lombok 'org.projectlombok:lombok:1.16.10'
+    lombok 'org.projectlombok:lombok:1.18.36'
 }
 
 sourceSets.each{ sourceSet -> 
@@ -17,28 +17,29 @@ sourceSets.each{ sourceSet ->
 
 // Delombok the code
 task delombok() {
-    dependsOn configurations.compile
+    dependsOn configurations.implementation
     dependsOn configurations.lombok
-} << {
-    File jarFile = null;
-    configurations.lombok.resolvedConfiguration.resolvedArtifacts.find {
-        if ("lombok".equals(it.name)) {
-            jarFile = it.file;
-        }
-    }
-    // Creating a command similar to what is provided in lombok website
-    sourceSets.each{ sourceSet ->
-        def classPath = sourceSet.compileClasspath.files.join(";")
-        def delombokPath = sourceSet.ext.delombok
-        delombokPath.mkdirs();
-        javaexec {
-            main = "-jar"
-            args jarFile, "delombok"
-            if (!classPath.empty) {
-                args "-c", classPath
+    doLast {
+        File jarFile = null;
+        configurations.lombok.resolvedConfiguration.resolvedArtifacts.find {
+            if ("lombok".equals(it.name)) {
+                jarFile = it.file;
             }
-            args "-d", delombokPath
-            args sourceSet.allJava.srcDirs
+        }
+        // Creating a command similar to what is provided in lombok website
+        sourceSets.each{ sourceSet ->
+            def classPath = sourceSet.compileClasspath.files.join(";")
+            def delombokPath = sourceSet.ext.delombok
+            delombokPath.mkdirs();
+            javaexec {
+                main = "-jar"
+                args jarFile, "delombok"
+                if (!classPath.empty) {
+                    args "-c", classPath
+                }
+                args "-d", delombokPath
+                args sourceSet.allJava.srcDirs
+            }
         }
     }
 }

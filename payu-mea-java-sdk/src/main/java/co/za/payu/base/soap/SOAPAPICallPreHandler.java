@@ -1,7 +1,6 @@
 package co.za.payu.base.soap;
 
 import co.za.payu.api.IRequest;
-import co.za.payu.api.Transaction;
 import co.za.payu.base.APICallPreHandler;
 import co.za.payu.base.Constants;
 import co.za.payu.base.SDKUtil;
@@ -11,27 +10,27 @@ import co.za.payu.base.exception.ActionRequiredException;
 import co.za.payu.base.util.UserAgentHeader;
 
 import co.za.payu.ws.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.*;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
+
+import jakarta.xml.soap.*;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
  * SOAPAPICallPreHandler acts as a {@link APICallPreHandler} for SOAP API calls.
  * The implementation is PayU specific, To do custom implementation override
  * the protected methods.
- *
  * SOAPAPICallPreHandler requires a configuration system to function
  * properly. The configuration is initialized to default in PayUResource
- * class if no configuration methods initConfig(..) was attempted before
+ * class if no configuration methods initConfig(...) was attempted before
  * making the API call. The users can override this default file
  * 'sdk_config.properties' by choosing different version of
  * initConfig(...) and passing their custom configuration.
@@ -46,12 +45,10 @@ import java.util.*;
  * object.
  */
 public class SOAPAPICallPreHandler implements APICallPreHandler {
-    private static final Logger log = LoggerFactory.getLogger(SOAPAPICallPreHandler.class);
-
     /**
      * Configuration Map used for dynamic configuration
      */
-    private Map<String, String> configurationMap = null;
+    private final Map<String, String> configurationMap;
 
     /**
      * Base URL for the service
@@ -95,12 +92,6 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
 
     /**
      * Constructor using configurations dynamically
-     */
-    public SOAPAPICallPreHandler() {
-    }
-
-    /**
-     * Constructor using configurations dynamically
      *
      * @param configurationMap Map used for dynamic configuration
      */
@@ -112,12 +103,11 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      * Constructor using a Map of headers for forming custom headers
      *
      * @param configurationMap Map used for dynamic configuration
-     * @param headersMap Headers Map
+     * @param headersMap       Headers Map
      */
     public SOAPAPICallPreHandler(Map<String, String> configurationMap, Map<String, String> headersMap) {
         this(configurationMap);
-        this.headersMap = (headersMap == null) ? Collections
-                .<String, String> emptyMap() : headersMap;
+        this.headersMap = (headersMap == null) ? Collections.emptyMap() : headersMap;
     }
 
     /**
@@ -208,28 +198,21 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
     }
 
     public String getServiceEndPoint() {
-		/*
-		 * Process the EndPoint to append the resourcePath sent as a part of the
-		 * method call with the base endPoint retrieved from configuration
-		 * system
-		 */
+        /*
+         * Process the EndPoint to append the resourcePath sent as a part of the
+         * method call with the base endPoint retrieved from configuration
+         * system
+         */
         String endPoint = null;
         try {
             endPoint = getBaseURL().toURI().resolve(Constants.WSDL_PATH).toString();
-        } catch (MalformedURLException e) {
-            //
-        } catch (URISyntaxException e) {
+        } catch (MalformedURLException | URISyntaxException e) {
             //
         }
         return endPoint;
     }
 
-    public AuthCredential getCredential() {
-        return null;
-    }
-
     public void validate() throws ActionRequiredException {
-        // TODO
     }
 
     /**
@@ -241,12 +224,12 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      */
     public URL getBaseURL() throws MalformedURLException {
 
-		/*
-		 * Check for property 'mode' in the configuration, if not
-		 * found, check for 'service.EndPoint' property in the configuration and default
-		 * endpoint to PayU sandbox or live endpoints. Throw exception if the
-		 * above rules fail
-		 */
+        /*
+         * Check for property 'mode' in the configuration, if not
+         * found, check for 'service.EndPoint' property in the configuration and default
+         * endpoint to PayU sandbox or live endpoints. Throw exception if the
+         * above rules fail
+         */
         if (url == null) {
             String mode = this.configurationMap.get(Constants.MODE);
             // Default to Endpoint param.
@@ -255,7 +238,7 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
                 urlString = Constants.SOAP_SANDBOX_ENDPOINT;
             } else if (Constants.LIVE.equalsIgnoreCase(mode)) {
                 urlString = Constants.SOAP_LIVE_ENDPOINT;
-            } else if (urlString == null || urlString.length() <= 0) {
+            } else if (urlString == null || urlString.isEmpty()) {
                 throw new MalformedURLException(
                         "service.EndPoint not set (OR) mode not configured to sandbox/live ");
             }
@@ -271,7 +254,7 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      * @param urlString the url to set
      */
     public void setUrl(String urlString) throws MalformedURLException {
-        if (urlString != null && urlString.length() > 0) {
+        if (urlString != null && !urlString.isEmpty()) {
             String uString = urlString.endsWith("/") ? urlString : urlString + "/";
             this.url = new URL(uString);
         } else {
@@ -319,7 +302,7 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      * Returns API safekey from configuration Map or instance variable
      */
     private String getAccountPrefix() {
-        if(accountPrefix != null)
+        if (accountPrefix != null)
             return accountPrefix;
 
         return this.configurationMap.get(Constants.ACCOUNT_PREFIX);
@@ -337,18 +320,17 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      * Encodes Client ID and Client Secret in Base 64
      */
     private String encodeToBase64(String username, String password) throws UnsupportedEncodingException {
-        String base64ClientID = generateBase64String(username + ":" + password);
-        return base64ClientID;
+        return generateBase64String(username + ":" + password);
     }
 
     /*
      * Generate a Base64 encoded String from clientID & clientSecret
      */
-    private String generateBase64String(String clientID) throws UnsupportedEncodingException {
-        String base64ClientID = null;
-        byte[] encoded = null;
-        encoded = Base64.encodeBase64(clientID.getBytes("UTF-8"));
-        base64ClientID = new String(encoded, "UTF-8");
+    private String generateBase64String(String clientID) {
+        String base64ClientID;
+        byte[] encoded;
+        encoded = Base64.encodeBase64(clientID.getBytes(StandardCharsets.UTF_8));
+        base64ClientID = new String(encoded, StandardCharsets.UTF_8);
         return base64ClientID;
     }
 
@@ -359,22 +341,22 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      */
     protected Map<String, String> getProcessedHeaderMap() {
 
-		/*
-		 * The implementation is PayPal specific. The Authorization header is
-		 * formed for OAuth or Basic, for OAuth system the authorization token
-		 * passed as a parameter is used in creation of HTTP header, for Basic
-		 * Authorization the ClientID and ClientSecret passed as parameters are
-		 * used after a Base64 encoding.
-		 */
-        Map<String, String> headers = new HashMap<String, String>();
+        /*
+         * The implementation is PayPal specific. The Authorization header is
+         * formed for OAuth or Basic, for OAuth system the authorization token
+         * passed as a parameter is used in creation of HTTP header, for Basic
+         * Authorization the ClientID and ClientSecret passed as parameters are
+         * used after a Base64 encoding.
+         */
+        Map<String, String> headers = new HashMap<>();
         // Add any custom headers
-        if (headersMap != null && headersMap.size() > 0) {
+        if (headersMap != null && !headersMap.isEmpty()) {
             headers.putAll(headersMap);
         }
 
-        if (getAPIUsername() != null && getAPIUsername().trim().length() > 0
+        if (getAPIUsername() != null && !getAPIUsername().trim().isEmpty()
                 && getAPIPassword() != null
-                && getAPIPassword().trim().length() > 0) {
+                && !getAPIPassword().trim().isEmpty()) {
             try {
                 headers.put(Constants.AUTHORIZATION_HEADER, "Basic "
                         + encodeToBase64(getAPIUsername(), getAPIPassword()));
@@ -383,16 +365,16 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
             }
         }
 
-		/*
-		 * Appends request Id which is used by PayU API service for Idempotent
-		 */
-        if (requestId != null && requestId.length() > 0) {
+        /*
+         * Appends request ID which is used by PayU API service for Idempotent
+         */
+        if (requestId != null && !requestId.isEmpty()) {
             headers.put(Constants.PAYU_REQUEST_ID_HEADER, requestId);
         }
 
-		/*
-		 * Add User-Agent header for tracking in PayU system
-		 */
+        /*
+         * Add User-Agent header for tracking in PayU system
+         */
         headers.putAll(formUserAgentHeader());
 
         return headers;
@@ -400,49 +382,42 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
 
     /**
      * Sets API version string and Safekey if not explicitly configured
-     *
-     * @return APICallPreHandler
      */
-    public SOAPAPICallPreHandler addAPIParameters() {
-        if(request != null) {
-            if(request.getApi().isEmpty()) {
+    public void addAPIParameters() {
+        if (request != null) {
+            if (request.getApi().isEmpty()) {
                 request.setApi(Constants.API_VERSION);
             }
-            if(request.getSafekey().isEmpty()) {
+            if (request.getSafekey().isEmpty()) {
                 request.setSafekey(this.getAPISafekey());
             }
         }
 
-        return this;
     }
 
     /**
      * Sets API version string and Safekey if not explicitly configured
-     *
-     * @return APICallPreHandler
      */
-    public SOAPAPICallPreHandler addSupportedPaymentMethods() {
-        if(request != null && !soapAction.equals("getTransaction")) {
-            if(request instanceof DoTransaction) {
-                DoTransaction doTransaction = (DoTransaction) request;
-                if(doTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL
+    public void addSupportedPaymentMethods() {
+        if (request != null && !soapAction.equals("getTransaction")) {
+            if (request instanceof DoTransaction doTransaction) {
+                if (doTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL
                         && doTransaction.getTransactionType() != TransactionType.CREDIT
                         && doTransaction.getTransactionType() != TransactionType.FINALIZE
-                        && doTransaction.getEft().size() == 0) {
+                        && doTransaction.getEft().isEmpty()) {
                     request.setSupportedPaymentMethods(this.getPaymentMethods());
                 }
             }
         }
-        if(request != null && soapAction.equals("setTransaction")) {
-            if(request instanceof SetTransaction) {
-                SetTransaction setTransaction = (SetTransaction) request;
-                if(setTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL
-                    && setTransaction.getTransactionType() != TransactionType.CREDIT
+        if (request != null && soapAction.equals("setTransaction")) {
+            if (request instanceof SetTransaction setTransaction) {
+                if (setTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL
+                        && setTransaction.getTransactionType() != TransactionType.CREDIT
                 ) {
                     List<CustomField> customFields = setTransaction.getCustomfield();
-                    if (customFields.size() >= 1) {
-                        for (CustomField c: customFields) {
-                            if(!c.getKey().equals("processingType")) {
+                    if (!customFields.isEmpty()) {
+                        for (CustomField c : customFields) {
+                            if (!c.getKey().equals("processingType")) {
                                 request.setSupportedPaymentMethods(this.getPaymentMethods());
                             }
                         }
@@ -453,7 +428,6 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
             }
         }
 
-        return this;
     }
 
     /**
@@ -466,17 +440,14 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
     }
 
     /**
-     *
      * @return Set<QName>
      */
     public Set<QName> getHeaders() {
-        return new TreeSet();
+        return new TreeSet<>();
     }
 
     /**
-     *
      * @param context SOAP message context
-     * @return
      */
     @Override
     public boolean handleMessage(SOAPMessageContext context) {
@@ -492,21 +463,21 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
                 String prefix = "wsse";
                 SOAPEnvelope envelope = context.getMessage().getSOAPPart().getEnvelope();
                 SOAPFactory factory = SOAPFactory.newInstance();
-                SOAPElement securityElem = factory.createElement("Security",prefix,uri);
-                SOAPElement tokenElem = factory.createElement("UsernameToken",prefix,uri);
+                SOAPElement securityElem = factory.createElement("Security", prefix, uri);
+                SOAPElement tokenElem = factory.createElement("UsernameToken", prefix, uri);
 
-                tokenElem.addAttribute(QName.valueOf("wsu:Id"),"UsernameToken-9");
+                tokenElem.addAttribute(QName.valueOf("wsu:Id"), "UsernameToken-9");
                 tokenElem.addAttribute(QName.valueOf("xmlns:wsu"), uta);
 
-                SOAPElement usernameElement = factory.createElement("Username",prefix,uri);
+                SOAPElement usernameElement = factory.createElement("Username", prefix, uri);
                 usernameElement.addTextNode(getAPIUsername());
 
-                SOAPElement passworddElement = factory.createElement("Password",prefix,uri);
-                passworddElement.addTextNode(getAPIPassword());
-                passworddElement.addAttribute(QName.valueOf("Type"), ta);
+                SOAPElement passwordElement = factory.createElement("Password", prefix, uri);
+                passwordElement.addTextNode(getAPIPassword());
+                passwordElement.addAttribute(QName.valueOf("Type"), ta);
 
                 tokenElem.addChildElement(usernameElement);
-                tokenElem.addChildElement(passworddElement);
+                tokenElem.addChildElement(passwordElement);
 
                 securityElem.addChildElement(tokenElem);
                 SOAPHeader header = envelope.getHeader();

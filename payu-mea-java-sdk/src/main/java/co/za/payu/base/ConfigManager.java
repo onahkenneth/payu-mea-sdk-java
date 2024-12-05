@@ -8,7 +8,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.AccessControlException;
 import java.util.*;
 
 /**
@@ -58,16 +57,16 @@ public final class ConfigManager {
     // Initialize DEFAULT_PROPERTIES
     static {
         DEFAULT_PROPERTIES = new Properties();
-        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_TIMEOUT, "5000");
-        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_RETRY, "2");
-        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_READ_TIMEOUT, "30000");
+        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_TIMEOUT, "30");
+        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_RETRY, "3");
+        DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_READ_TIMEOUT, "60");
         DEFAULT_PROPERTIES.put(Constants.HTTP_CONNECTION_MAX_CONNECTION, "100");
         DEFAULT_PROPERTIES.put(Constants.DEVICE_IP_ADDRESS, "127.0.0.1");
         DEFAULT_PROPERTIES.put(Constants.SSLUTIL_JRE, "SunJSSE");
         DEFAULT_PROPERTIES.put(Constants.SSLUTIL_PROTOCOL, "TLS");
         DEFAULT_PROPERTIES.put(Constants.PAYU_TRUST_CERT_URL, "DigiCertSHA2ExtendedValidationServerCA.crt");
         DEFAULT_PROPERTIES.put(Constants.PAYU_WEBHOOK_CERTIFICATE_AUTHTYPE, "RSA");
-        defaultMapView = new HashMap<String, String>();
+        defaultMapView = new HashMap<>();
         for (Object object : DEFAULT_PROPERTIES.keySet()) {
             defaultMapView.put(object.toString().trim(), DEFAULT_PROPERTIES
                     .getProperty(object.toString()).trim());
@@ -78,20 +77,19 @@ public final class ConfigManager {
      * Private constructor
      */
     private ConfigManager() {
-
 		/*
 		 * Load configuration for default 'sdk_config.properties'
 		 */
-        ResourceLoader resourceLoader = new ResourceLoader(
-                Constants.DEFAULT_CONFIGURATION_FILE);
+        ResourceLoader resourceLoader = new ResourceLoader(Constants.DEFAULT_CONFIGURATION_FILE);
         properties = new Properties();
+        
         try {
             InputStream inputStream = resourceLoader.getInputStream();
             properties.load(inputStream);
         } catch (IOException e) {
             // We tried reading the config, but it seems like you dont have it. Skipping...
             log.debug(Constants.DEFAULT_CONFIGURATION_FILE + " not present. Skipping...");
-        } catch (AccessControlException e) {
+        } catch (Exception e) {
             log.debug("Unable to read " + Constants.DEFAULT_CONFIGURATION_FILE + ". Skipping...");
         } finally {
             setPropertyLoaded(true);
@@ -127,7 +125,7 @@ public final class ConfigManager {
      * @return {@link Map} view of Default {@link Properties}
      */
     public static Map<String, String> getDefaultSDKMap() {
-        return new HashMap<String, String>(defaultMapView);
+        return new HashMap<>(defaultMapView);
     }
 
     /**
@@ -157,7 +155,7 @@ public final class ConfigManager {
     /**
      * Loads the internal properties with the passed {@link InputStream}
      *
-     * @deprecated This code was used for older integrations. Not valid anymore. To be removed in the next major release.
+     * @Deprecated This code was used for older integrations. Not valid anymore. To be removed in the next major release.
      * @param is
      *            InputStream
      *
@@ -175,15 +173,14 @@ public final class ConfigManager {
      * Initializes the internal properties with the passed {@link Properties}
      * instance
      *
-     * @deprecated This code was used for older integrations. Not valid anymore. To be removed in the next major release.
+     * @Deprecated This code was used for older integrations. Not valid anymore. To be removed in the next major release.
      * @param properties
      *            Properties instance
      *
      */
     public void load(Properties properties) {
         if (properties == null) {
-            throw new IllegalArgumentException(
-                    "Initialization properties cannot be null");
+            throw new IllegalArgumentException("Initialization properties cannot be null");
         }
         this.properties = properties;
         if (!propertyLoaded) {
@@ -201,7 +198,7 @@ public final class ConfigManager {
     public Map<String, String> getConfigurationMap() {
         if (mapView == null) {
             synchronized (DEFAULT_PROPERTIES) {
-                mapView = new HashMap<String, String>();
+                mapView = new HashMap<>();
                 if (properties != null) {
                     for (Object object : properties.keySet()) {
                         mapView.put(object.toString().trim(), properties
@@ -210,7 +207,7 @@ public final class ConfigManager {
                 }
             }
         }
-        return new HashMap<String, String>(mapView);
+        return new HashMap<>(mapView);
     }
 
     private void setPropertyLoaded(boolean propertyLoaded) {

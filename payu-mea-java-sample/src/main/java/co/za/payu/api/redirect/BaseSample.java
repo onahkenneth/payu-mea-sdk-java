@@ -1,6 +1,6 @@
 package co.za.payu.api.redirect;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class BaseSample {
     public static String getBaseUrl(HttpServletRequest request) {

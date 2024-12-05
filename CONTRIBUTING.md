@@ -4,8 +4,8 @@
 
 Developer Setup
 ------------------
-- We are using [Lombok Plugin](https://projectlombok.org/download.html) to auto generate getters and setters for our API model objects. 
-- To properly help you contribute, you need to follow instructions on setting up Lombok Plugin in your IDE (Eclipse/IntelliJ/etc), as [shown here](https://projectlombok.org/download.html).
+- We use [Lombok Plugin](https://projectlombok.org/download.html) to auto generate getters and setters for our API model objects. 
+- To help you contribute, you need to follow instructions on setting up Lombok Plugin in your IDE (Eclipse/IntelliJ/etc), as [shown here](https://projectlombok.org/download.html).
 
 General Guidelines
 ------------------

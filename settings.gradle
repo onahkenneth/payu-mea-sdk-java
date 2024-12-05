@@ -1,3 +1,4 @@
-rootProject.name = 'payu-mea-sdk-java'
+rootProject.name = 'payu-mea-sdk'
 
-include ':payu-mea-java-sdk', ':payu-mea-java-sample'
+include ':payu-mea-java-sdk'
+include ':payu-mea-java-sample'

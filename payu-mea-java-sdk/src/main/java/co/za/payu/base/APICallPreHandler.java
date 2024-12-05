@@ -4,8 +4,8 @@ import co.za.payu.api.IRequest;
 import co.za.payu.base.exception.ActionRequiredException;
 import co.za.payu.base.exception.AuthorizationException;
 
-import javax.xml.ws.handler.soap.SOAPHandler;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
+import jakarta.xml.ws.handler.soap.SOAPHandler;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
 import java.util.Map;
 
 /**
@@ -47,8 +47,6 @@ public interface APICallPreHandler extends SOAPHandler<SOAPMessageContext> {
 
     /**
      * Validates settings and integrity before call
-     *
-     * @throws ActionRequiredException
      */
     void validate() throws ActionRequiredException;
 

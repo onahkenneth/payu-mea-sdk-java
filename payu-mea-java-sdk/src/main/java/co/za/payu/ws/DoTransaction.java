@@ -5,7 +5,7 @@ import co.za.payu.api.IRequest;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.*;
 
 /**
  * <p>Java class for doTransaction complex type.

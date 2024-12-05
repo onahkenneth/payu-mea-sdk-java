@@ -1,14 +1,16 @@
 package co.za.payu.ws;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URL;
-import javax.jws.HandlerChain;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebEndpoint;
-import javax.xml.ws.WebServiceClient;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.WebServiceFeature;
+import jakarta.jws.HandlerChain;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebEndpoint;
+import jakarta.xml.ws.WebServiceClient;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.WebServiceFeature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +25,16 @@ import org.slf4j.LoggerFactory;
 public class EnterpriseAPISoapService extends Service
 {
     private static final Logger log = LoggerFactory.getLogger(EnterpriseAPISoapService.class);
-    private final static URL ENTERPRISEAPISOAPSERVICE_WSDL_LOCATION;
-    private final static WebServiceException ENTERPRISEAPISOAPSERVICE_EXCEPTION;
-    private final static QName ENTERPRISEAPISOAPSERVICE_QNAME = new QName("http://soap.api.controller.web.payjar.com/", "EnterpriseAPISoapService");
+    private static final URL ENTERPRISEAPISOAPSERVICE_WSDL_LOCATION;
+    private static final WebServiceException ENTERPRISEAPISOAPSERVICE_EXCEPTION;
+    private static final QName ENTERPRISEAPISOAPSERVICE_QNAME = new QName("http://soap.api.controller.web.payjar.com/", "EnterpriseAPISoapService");
 
     static {
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("https://secure.payu.co.za/service/PayUAPI?wsdl");
-        } catch (MalformedURLException ex) {
+            url = new URI("https://secure.payu.co.za/service/PayUAPI?wsdl").toURL();
+        } catch (URISyntaxException | MalformedURLException ex) {
             e = new WebServiceException(ex);
         }
         ENTERPRISEAPISOAPSERVICE_WSDL_LOCATION = url;
@@ -76,7 +78,7 @@ public class EnterpriseAPISoapService extends Service
     /**
      * 
      * @param features
-     *     A list of {@link javax.xml.ws.WebServiceFeature} to configure on the proxy.  Supported features not in the <code>features</code> parameter will have their default values.
+     *     A list of {@link jakarta.xml.ws.WebServiceFeature} to configure on the proxy.  Supported features not in the <code>features</code> parameter will have their default values.
      * @return
      *     returns EnterpriseAPISoap
      */
@@ -91,5 +93,4 @@ public class EnterpriseAPISoapService extends Service
         }
         return ENTERPRISEAPISOAPSERVICE_WSDL_LOCATION;
     }
-
 }

@@ -3,10 +3,10 @@ package co.za.payu.api.enterprise.payment;
 import java.io.IOException;
 import java.util.UUID;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import co.za.payu.api.IResponse;
 import co.za.payu.api.redirect.BaseSample;
@@ -26,7 +26,7 @@ public class CreatePaymentRealTimeRecurringServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(CreatePaymentRealTimeRecurringServlet.class);
 
-    private ObjectFactory objectFactory = new ObjectFactory();
+    private static ObjectFactory objectFactory = new ObjectFactory();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

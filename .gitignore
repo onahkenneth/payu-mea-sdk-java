@@ -210,3 +210,4 @@ gradle-app.setting
 
 # Invoice QR Sample output
 invoice.png
+.vscode/

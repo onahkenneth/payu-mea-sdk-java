@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -229,11 +230,11 @@ public abstract class SSLUtil {
 
     /**
      * Downloads Certificate from URL
-     * @deprecated Please use {@link #downloadCertificateFromPath(String, Map)} instead.
      *
      * @param urlPath
      * @return InputStream containing certificate data
      * @throws PayUSOAPException
+     * @deprecated Please use {@link #downloadCertificateFromPath(String, Map)} instead.
      */
     public static InputStream downloadCertificateFromPath(String urlPath) throws PayUSOAPException {
         return downloadCertificateFromPath(urlPath, ConfigManager.getDefaultSDKMap());
@@ -249,11 +250,11 @@ public abstract class SSLUtil {
      */
     public static InputStream downloadCertificateFromPath(String urlPath, Map<String, String> configurations)
             throws PayUSOAPException {
-        if (urlPath == null || urlPath.trim() == "") {
+        if (urlPath == null || urlPath.trim().equals("")) {
             throw new PayUSOAPException("Certificate Path cannot be empty");
         }
         try {
-            Map<String, String> headerMap = new HashMap<String, String>();
+            Map<String, String> headerMap = new HashMap<>();
             ConnectionConfiguration httpConfiguration = new ConnectionConfiguration();
             httpConfiguration.setEndPointUrl(urlPath);
             httpConfiguration.setConnectionTimeout(Integer
@@ -266,7 +267,7 @@ public abstract class SSLUtil {
             Connection connection = ConnectionManager.getInstance()
                     .getConnection();
             connection.createAndconfigureConnection(httpConfiguration);
-            URL url = new URL(urlPath);
+            URL url = new URI(urlPath).toURL();
             headerMap.put("Host", url.getHost());
             return connection.executeWithStream(url.toString(), "", headerMap);
         } catch (Exception ex) {

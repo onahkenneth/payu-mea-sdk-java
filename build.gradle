@@ -1,21 +1,14 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
-    }
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.jreleaser' version '1.15.0'
 }
-apply plugin: 'io.codearte.nexus-staging'
 
 allprojects {
-    apply plugin: 'maven'
-    apply plugin: 'java'
-
-    group = 'co.za.payu.sdk'
-    version = '0.1.0'
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    group = 'co.za.payu'
+    version = '2.0.0'
+    sourceCompatibility = 21
+    targetCompatibility = 21
 
     repositories {
         mavenCentral()
@@ -24,7 +17,52 @@ allprojects {
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
+}
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'za.co.nanoteck'
+            artifactId = 'payu-mea-java-sdk'
+
+            from components.java
+
+            pom {
+                name = 'app'
+                description = 'PayU MEA Secure Payments SDK for payments integration'
+                url = 'https://github.com/PayUMEA/payu-mea-java-sdk'
+                inceptionYear = '2024'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/PayUMEA/payu-mea-java-sdk/LICENSE.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'nanoteck'
+                        name = 'Kenneth Madu'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/PayUMEA/payu-mea-java-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com/PayUMEA/payu-mea-java-sdk.git'
+                    url = 'http://github.com/PayUMEA/payu-mea-java-sdk'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
 }
 
 // GLOBAL METHODS
@@ -37,124 +75,3 @@ def getRepositoryPassword() {
 }
 
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
-// ## PAYU API SDK
-project(':payu-mea-java-sdk') {
-    apply plugin: 'signing'
-
-    apply from: 'lombok.gradle'
-
-    nexusStaging {
-        packageGroup = "co.za.payu"
-        username = getRepositoryUsername()
-        password = getRepositoryPassword()
-    }
-
-    dependencies {
-        // General
-        compile 'com.google.code.gson:gson:2.2.2'
-
-        // Logging
-        testRuntime 'org.apache.logging.log4j:log4j-api:2.1'
-        testRuntime 'org.apache.logging.log4j:log4j-core:2.1'
-        testRuntime 'org.apache.logging.log4j:log4j-slf4j-impl:2.1'
-        compile 'org.slf4j:slf4j-api:1.7.21'
-
-        // Test
-        testCompile 'org.testng:testng:6.3.1'
-        testCompile "org.mockito:mockito-core:[2.0,)"
-    }
-
-    test {
-        // enable TestNG support (default is JUnit)
-        useTestNG {
-            suites 'src/test/resources/testng.xml'
-            // show standard out and standard error of the test JVM(s) on the console
-            testLogging.showStandardStreams = true
-            // This is to force the test task to execute everytime.
-            outputs.upToDateWhen { false }
-        } 
-    }
-
-    // Run functional tests 
-    task functionalTest(type: Test, dependsOn: 'test') {
-        useTestNG() {
-            suites 'src/test/resources/functional.xml'
-        }
-    }
-
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        // Using delomboked as a source
-        from sourceSets.main.ext.delombok
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
-    }
-
-    uploadArchives {
-        repositories.mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
-            }
-
-            pom.project {
-                name 'payu-mea-java-sdk'
-                groupId  'co.za.payu.sdk'
-                artifactId 'payu-mea-java-sdk'
-                packaging 'jar'
-                description 'PayU MEA Secure Payments Java SDK for integrating with the SOAP APIs'
-                url 'https://github.com/netcraft-devops/payu-mea-java-sdk.git'
-
-                scm {
-                    url 'https://github.com/netcraft-devops/payu-mea-java-sdk.git'
-                    connection 'scm:git:git://github.com/netcraft-devops/payu-mea-java-sdk.git'
-                }
-
-                licenses {
-                    license {
-                        name 'MIT License'
-                        url 'https://github.com/netcraft-devops/payu-mea-java-sdk/blob/master/LICENSE.txt'
-                        distribution 'repo'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'netcraft-devops'
-                        name 'Kenneth Onah'
-                        email 'kenneth@netcraft-devops.com'
-                    }
-                }
-            }
-        }
-    }
-
-    signing {
-        required { isReleaseVersion && gradle.taskGraph.hasTask(tasks.uploadArchives) }
-        sign configurations.archives
-    }
-}
-
-// ## PAYU API SAMPLE PROJECT
-project(':payu-mea-java-sample') {
-    apply plugin: 'jetty'
-
-    dependencies {
-        compile project(':payu-mea-java-sdk')
-        compile 'javax.servlet:javax.servlet-api:3.1.0'
-        compile 'log4j:log4j:1.2.14'
-        compile 'org.apache.logging.log4j:log4j-api:2.1'
-        compile 'org.apache.logging.log4j:log4j-core:2.1'
-        compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.1'
-        compile 'org.slf4j:slf4j-api:1.7.21'
-    }
-}

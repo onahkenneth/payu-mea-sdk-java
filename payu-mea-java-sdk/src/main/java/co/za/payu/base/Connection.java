@@ -11,10 +11,10 @@ import co.za.payu.ws.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.HandlerResolver;
-import javax.xml.ws.handler.PortInfo;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.HandlerResolver;
+import jakarta.xml.ws.handler.PortInfo;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -56,9 +56,7 @@ public abstract class Connection {
      * @param handler
      * @return Response IResponse
      */
-    public IResponse execute(final APICallPreHandler handler) throws InvalidResponseDataException,
-            IOException, InterruptedException, HttpErrorException {
-
+    public IResponse execute(final APICallPreHandler handler) throws IOException {
         URL wsdlUrl;
         IResponse response = null;
         String endPoint = handler.getServiceEndPoint();
