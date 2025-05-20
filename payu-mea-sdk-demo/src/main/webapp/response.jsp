@@ -150,7 +150,7 @@ pre .id {
 
 						$(document.body)
 								.append(
-										'<footer class="footer"> <div class="container"> <div class="footer-div"> <ul class="footer-links"> <li> <a href="https://github.com/paypal/PayPal-Java-SDK" target="_blank"><i class="fa fa-github"></i> Github</a></li><li> <a href="https://developer.paypal.com/webapps/developer/docs/api/" target="_blank"><i class="fa fa-book"></i> REST API Reference</a> </li><li> <a href="https://github.com/paypal/PayPal-Java-SDK/issues" target="_blank"><i class="fa fa-exclamation-triangle"></i> Report Issues </a> </li></ul> </div></div></footer>');
+										'<footer class="footer"> <div class="container"> <div class="footer-div"> <ul class="footer-links"> <li> <a href="https://github.com/PayUMEA/payu-mea-sdk-java" target="_blank"><i class="fa fa-github"></i> Github</a></li><li> <a href="https://payusahelp.atlassian.net/wiki/spaces/general/overview" target="_blank"><i class="fa fa-book"></i> Documentation</a> </li><li> <a href="https://github.com/PayUMEA/payu-mea-sdk-java/issues" target="_blank"><i class="fa fa-exclamation-triangle"></i> Report Issues </a> </li></ul> </div></div></footer>');
 
 						$(".prettyprint").each(function() {
 							if ($(this).html().trim() != '') {

@@ -117,10 +117,7 @@ public class PayUResource extends PayUModel {
             if (apiContext.getConfigurationMap() != null) {
                 cMap = SDKUtil.combineDefaultMap(apiContext.getConfigurationMap());
             } else {
-                boolean configInitialized = false;
-                if (!configInitialized) {
-                    initializeToDefault();
-                }
+                initializeToDefault();
 
                 /*
                  * The Map returned here is already combined with default values
@@ -130,8 +127,14 @@ public class PayUResource extends PayUModel {
             headersMap = apiContext.getHTTPHeaders();
             requestId = apiContext.getRequestId();
 
-            APICallPreHandler apiCallPreHandler = createAPICallPreHandler(cMap,
-                    soapAction, headersMap, requestId, payload, apiContext.getAccountPrefix(), apiContext.getSdkVersion());
+            APICallPreHandler apiCallPreHandler = createAPICallPreHandler(
+                cMap,
+                soapAction,
+                headersMap,
+                requestId,
+                payload,
+                apiContext.getAccountPrefix(),
+                apiContext.getSdkVersion());
 
             response = execute(apiCallPreHandler);
         }
@@ -144,17 +147,22 @@ public class PayUResource extends PayUModel {
      * layer.
      *
      * @param configurationMap configuration Map
+     * @param soapAction soap action to execute
      * @param headersMap       Custom HTTP headers map
      * @param requestId        PayU Request Id
      * @param request          request payload
+     * @param accountPrefix account ID prefix configured in sdk_config.properties file
      * @param sdkVersion       {@link SDKVersion} instance
      * @return APICallPreHandler
      */
     public static APICallPreHandler createAPICallPreHandler(
-            Map<String, String> configurationMap,
-            String soapAction, Map<String, String> headersMap,
-            String requestId, IRequest request, String accountPrefix,
-            SDKVersion sdkVersion
+        Map<String, String> configurationMap,
+        String soapAction,
+        Map<String, String> headersMap,
+        String requestId,
+        IRequest request,
+        String accountPrefix,
+        SDKVersion sdkVersion
     ) {
         APICallPreHandler apiCallPreHandler;
         SOAPAPICallPreHandler soapAPICallPreHandler = new SOAPAPICallPreHandler(configurationMap, headersMap);

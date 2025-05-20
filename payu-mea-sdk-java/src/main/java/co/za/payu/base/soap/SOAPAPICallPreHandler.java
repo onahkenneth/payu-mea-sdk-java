@@ -8,15 +8,18 @@ import co.za.payu.base.SDKVersion;
 import co.za.payu.base.codec.binary.Base64;
 import co.za.payu.base.exception.ActionRequiredException;
 import co.za.payu.base.util.UserAgentHeader;
-
-import co.za.payu.ws.*;
-
-import javax.xml.namespace.QName;
-
-import jakarta.xml.soap.*;
+import co.za.payu.ws.CustomField;
+import co.za.payu.ws.DoTransaction;
+import co.za.payu.ws.SetTransaction;
+import co.za.payu.ws.TransactionType;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPFactory;
+import jakarta.xml.soap.SOAPHeader;
 import jakarta.xml.ws.handler.MessageContext;
 import jakarta.xml.ws.handler.soap.SOAPMessageContext;
 
+import javax.xml.namespace.QName;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -121,16 +124,6 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
     }
 
     /**
-     * @param soapAction the SOAP action to call
-     * @return SOAPAPICallPreHandler
-     */
-    public SOAPAPICallPreHandler setSoapAction(String soapAction) {
-        this.soapAction = soapAction;
-
-        return this;
-    }
-
-    /**
      * @param requestId the requestId to set
      * @return SOAPAPICallPreHandler
      */
@@ -141,31 +134,11 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
     }
 
     /**
-     * @param request the request object
-     * @return SOAPAPICallPreHandler
-     */
-    public SOAPAPICallPreHandler setRequestPayload(IRequest request) {
-        this.request = request;
-
-        return this;
-    }
-
-    /**
      * @param sdkVersion the sdkVersion to set
      * @return SOAPAPICallPreHandler
      */
     public SOAPAPICallPreHandler setSdkVersion(SDKVersion sdkVersion) {
         this.sdkVersion = sdkVersion;
-
-        return this;
-    }
-
-    /**
-     * @param accountPrefix the API account prefix
-     * @return SOAPAPICallPreHandler
-     */
-    public SOAPAPICallPreHandler setAccountPrefix(String accountPrefix) {
-        this.accountPrefix = accountPrefix;
 
         return this;
     }
@@ -189,12 +162,32 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
     }
 
     /**
+     * @param soapAction the SOAP action to call
+     * @return SOAPAPICallPreHandler
+     */
+    public SOAPAPICallPreHandler setSoapAction(String soapAction) {
+        this.soapAction = soapAction;
+
+        return this;
+    }
+
+    /**
      * Returns request
      *
      * @return Object of request
      */
     public IRequest getRequestPayload() {
         return request;
+    }
+
+    /**
+     * @param request the request object
+     * @return SOAPAPICallPreHandler
+     */
+    public SOAPAPICallPreHandler setRequestPayload(IRequest request) {
+        this.request = request;
+
+        return this;
     }
 
     public String getServiceEndPoint() {
@@ -308,6 +301,16 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
         return this.configurationMap.get(Constants.ACCOUNT_PREFIX);
     }
 
+    /**
+     * @param accountPrefix the API account prefix
+     * @return SOAPAPICallPreHandler
+     */
+    public SOAPAPICallPreHandler setAccountPrefix(String accountPrefix) {
+        this.accountPrefix = accountPrefix;
+
+        return this;
+    }
+
     /*
      * Returns payment methods from configuration Map
      */
@@ -399,16 +402,20 @@ public class SOAPAPICallPreHandler implements APICallPreHandler {
      * Sets API version string and Safekey if not explicitly configured
      */
     public void addSupportedPaymentMethods() {
-        if (request != null && !soapAction.equals("getTransaction")) {
-            if (request instanceof DoTransaction doTransaction) {
-                if (doTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL
-                        && doTransaction.getTransactionType() != TransactionType.CREDIT
-                        && doTransaction.getTransactionType() != TransactionType.FINALIZE
-                        && doTransaction.getEft().isEmpty()) {
-                    request.setSupportedPaymentMethods(this.getPaymentMethods());
-                }
-            }
+        List<TransactionType> transactionType = new ArrayList<>();
+        transactionType.add(TransactionType.CREDIT);
+        transactionType.add(TransactionType.FINALIZE);
+        transactionType.add(TransactionType.RESERVE_CANCEL);
+
+        if (request != null &&
+                !soapAction.equals("getTransaction") &&
+                request instanceof DoTransaction doTransaction &&
+                !transactionType.contains(doTransaction.getTransactionType()) &&
+                doTransaction.getEft().isEmpty()) {
+            request.setSupportedPaymentMethods(this.getPaymentMethods());
         }
+
+
         if (request != null && soapAction.equals("setTransaction")) {
             if (request instanceof SetTransaction setTransaction) {
                 if (setTransaction.getTransactionType() != TransactionType.RESERVE_CANCEL

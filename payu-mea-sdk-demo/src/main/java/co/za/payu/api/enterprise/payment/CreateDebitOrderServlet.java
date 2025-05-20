@@ -12,6 +12,7 @@ import co.za.payu.api.IResponse;
 import co.za.payu.api.redirect.BaseSample;
 import co.za.payu.base.soap.APIContext;
 import co.za.payu.base.soap.JSONFormatter;
+import co.za.payu.base.soap.PayUResource;
 import co.za.payu.base.exception.PayUSOAPException;
 import co.za.payu.util.SampleConstants;
 import co.za.payu.ws.*;
@@ -133,10 +134,10 @@ public class CreateDebitOrderServlet extends HttpServlet {
             LOGGER.info("Created debit order with token = " + doTransactionResponseMessage.getRecurringDetails().getRecurringPaymentToken()
                     + " and result code = " + doTransactionResponseMessage.getResultCode());
             ResultPrinter.addResult(req, resp, "Create Debit Order Payment.", Payment.getLastRequest(),
-                    Payment.getLastResponse(), null);
+                    PayUResource.getLastResponse(), null);
         } catch (PayUSOAPException ex) {
             ResultPrinter.addResult(req, resp, "Create Debit Order Payment. If Exception, check response for details",
-                    Payment.getLastRequest(), JSONFormatter.toJSON(doTransactionResponseMessage), ex.getMessage());
+                    PayUResource.getLastRequest(), JSONFormatter.toJSON(doTransactionResponseMessage), ex.getMessage());
         }
 
         return doTransactionResponseMessage;

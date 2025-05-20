@@ -24,7 +24,7 @@ public interface APICallPreHandler extends SOAPHandler<SOAPMessageContext> {
 
     /**
      * Returns the endpoint for the API call. If no endpoint is found
-     * in the passed configuration, then SANDBOX endpoints (hardcoded in
+     * in configuration, then SANDBOX endpoints (hardcoded in
      * {@link Constants})are taken to be default for the API call.
      *
      * @return Endpoint String.
