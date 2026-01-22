@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<handler-chains xmlns="https://jakarta.ee/xml/ns/jakartaee">
+  <handler-chain>
+    <handler>
+      <handler-name>SOAPAPICallPreHandler</handler-name>
+      <handler-class>co.za.payu.base.soap.SOAPAPICallPreHandler</handler-class>
+    </handler>
+  </handler-chain>
+</handler-chains>

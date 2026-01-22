@@ -210,3 +210,9 @@ gradle-app.setting
 
 # Invoice QR Sample output
 invoice.png
+.vscode/
+node_modules/
+# Ignore the build directory
+build/
+.gradle/
+.idea/

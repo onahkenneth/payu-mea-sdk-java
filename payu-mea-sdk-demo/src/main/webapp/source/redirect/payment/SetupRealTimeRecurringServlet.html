@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>enterprise/payment/SetupRealTimeRecurringServlet</title>
+</head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="groc-relative-root" content="../../">
+<meta name="groc-document-path" content="redirect/payment/SetupRealTimeRecurringServlet">
+<meta name="groc-project-path" content="redirect/payment/SetupRealTimeRecurringServlet.java">
+<link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css">
+<script type="text/javascript" src="../../assets/behavior.js"></script>
+
+<body>
+<div id="meta">
+    <div class="file-path">redirect/payment/SetupRealTimeRecurringServlet.java</div>
+</div>
+<div id="document">
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h1 id="setuppayment-real-time-recurring-sample">SetupRealTimeRecurring redirect payment Sample</h1>
+                <p>This sample code demonstrate how you can process a redirect Real Time Recurring (RTR) payment.</p>
+            </div>
+        </div>
+        <div class="code">
+<div class="wrapper"><span class="hljs-keyword">package</span> co.za.payu.api.redirect.payment;
+
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.util.UUID;
+
+<span class="hljs-keyword">import</span> jakarta.servlet.ServletException;
+<span class="hljs-keyword">import</span> jakarta.servlet.http.HttpServlet;
+<span class="hljs-keyword">import</span> jakarta.servlet.http.HttpServletRequest;
+<span class="hljs-keyword">import</span> jakarta.servlet.http.HttpServletResponse;
+
+<span class="hljs-keyword">import</span> co.za.payu.api.IResponse;
+<span class="hljs-keyword">import</span> co.za.payu.api.redirect.BaseSample;
+<span class="hljs-keyword">import</span> co.za.payu.base.soap.APIContext;
+<span class="hljs-keyword">import</span> co.za.payu.base.soap.JSONFormatter;
+<span class="hljs-keyword">import</span> co.za.payu.base.exception.PayUSOAPException;
+<span class="hljs-keyword">import</span> co.za.payu.util.SampleConstants;
+<span class="hljs-keyword">import</span> co.za.payu.ws.*;
+<span class="hljs-keyword">import</span> co.za.payu.api.Redirect;
+<span class="hljs-keyword">import</span> co.za.payu.util.ResultPrinter;
+<span class="hljs-keyword">import</span> org.apache.log4j.Logger;</div>
+        </div>
+    </div>
+    <div class="segment">
+        <div class="comments doc-section">
+            <div class="wrapper">
+                <p><span class='doc-section-header'></span></p>
+            </div>
+        </div>
+        <div class="code">
+<div class="wrapper"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SetupRealTimeRecurringServlet</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">HttpServlet</span> </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">1L</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger LOGGER = Logger.getLogger(SetupRealTimeRecurringServlet.class);
+
+    <span class="hljs-keyword">private</span> ObjectFactory objectFactory = <span class="hljs-keyword">new</span> ObjectFactory();
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doGet</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+        doPost(req, resp);
+    }
+            </div>
+        </div>
+    </div>
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h2 id="setup">Setup</h2>
+                <p>Sample showing to setup a redirect Real Time Recurring payment</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper"> <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doPost</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+        setupRealTimeRecurring(req, resp);
+        req.getRequestDispatcher(<span class="hljs-string">"../../response.jsp"</span>).forward(req, resp);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IResponse <span class="hljs-title">setupRealTimeRecurring</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span> </span>{</div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="baseUrl">Application base url</h3>
+                <p></p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                String baseUrl = BaseSample.getBaseUrl(req);</div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="api-context">Api Context</h3>
+                <p>Pass in a <code>ApiContext</code> object to authenticate the call and to send a unique request id (that ensures idempotency). The SDK generates a request id.
+                    The APIContext object must be instantiated with a username, password, safekey and mode, the account prefix is optional and is only required if you
+                    making use of multiple accounts configuration with sdk_config.properties file.</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                APIContext apiContext = <span class="hljs-keyword">new</span> APIContext(SampleConstants.apiUsername, SampleConstants.apiPassword,
+                SampleConstants.safeKey, SampleConstants.mode, SampleConstants.account7);</div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="basket">Basket</h3>
+                <p>Let&#39;s you specify summary of a customer&#39;s cart.</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                Basket basket = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createBasket</span>()
+                    .setDescription(<span class="hljs-string">"My payment"</span>)
+                    .setCurrencyCode(<span class="hljs-string">"ZAR"</span>)
+                    .setAmountInCents(<span class="hljs-string">"10000"</span>);</div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="customer">Customer</h3>
+                <p>A resource representing a Customer that funds a payment</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                Customer customer = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createCustomer</span>()
+                    .setIp(<span class="hljs-string">"127.0.0.1"</span>)
+                    .setFirstName(<span class="hljs-string">"Joe"</span>)
+                    .setLastName(<span class="hljs-string">"Shopper"</span>)
+                    .setEmail(<span class="hljs-string">"joe.shopper@example.com"</span>)
+                    .setMobile(<span class="hljs-string">"0748523695"</span>)
+                    .setCountryCode(<span class="hljs-string">"27"</span>)
+                    .setMerchantUserId(<span class="hljs-string">"890"</span>)
+                    .setAddress1(<span class="hljs-string">"21 Main Road"</span>)
+                    .setAddress2(<span class="hljs-string">"Cape Town"</span>)
+                    .setAddressCity(<span class="hljs-string">"Cape Town"</span>)
+                    .setStateCode(<span class="hljs-string">"WC"</span>)
+                    .setPostCode(<span class="hljs-string">"2000"</span>)
+                    .setCountryOfResidence(<span class="hljs-string">"ZAF"</span>);</div>
+        </div>
+    </div>
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="additionalInfo">AdditionalInfo</h3>
+                <p>A resource representing Additional Information about the transaction.</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                AdditionalInfo additionalInfo = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createAdditionalInfo</span>()
+                    .setNotificationUrl(baseUrl<span class="hljs-symbol">+</span><span class="hljs-string">"reserve/payment/return"</span>)
+                    .setReturnUrl(baseUrl<span class="hljs-symbol">+</span><span class="hljs-string">"reserve/payment/return?accountPrefix="</span>+SampleConstants.account7)
+                    .setCancelUrl(baseUrl<span class="hljs-symbol">+</span><span class="hljs-string">"reserve/payment/return?accountPrefix="</span>+SampleConstants.account7<span class="hljs-string">"&cancel=true"</span>)
+                    .setMerchantReference(<span class="hljs-class">UUID</span>.<span class="hljs-function">randomUUID</span>().<span class="hljs-function">toString</span>())
+                    .setSupportedPaymentMethods(<span class="hljs-string">"CREDITCARD_TOKEN"</span>)
+                    .setSecure3D(<span class="hljs-string">"true"</span>);
+            </div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="transactionRecord">TransactionRecord</h3>
+                <p>A resource representing a transaction record information</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                TransactionRecord transactionRecord = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createTransactionRecord</span>()
+                    .setRecurrences(<span class="hljs-string">"6"</span>)
+                    .setStartDate(<span class="hljs-string">"2014/07/26"</span>)
+                    .setStatementDescription(<span class="hljs-string">"Subscription"</span>)
+                    .setManagedBy(<span class="hljs-string">"PAYU"</span>)
+                    .setFrequency(<span class="hljs-string">"W"</span>);</div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="creditcard">CustomField</h3>
+                <p>Let&#39;s you specify a key-value pair.</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                CustomField customField1 = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createCustomField</span>()
+                    .setKey(<span class="hljs-string">"processingType"</span>)
+                    .setValue(<span class="hljs-string">"REAL_TIME_RECURRING"</span>);
+
+            </div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="setTransaction">SetTransaction</h3>
+                <p>A SetTransaction defines the Request payload of a payment setup - SetTransaction is created with a <code>Customer</code>, <code>Basket</code>, <code>AdditionalInfo</code> and other resource types</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                SetTransaction setTransaction = <span class="hljs-identifier">objectFactory</span>.<span class="hljs-function">createSetTransaction</span>()
+                    .setTransactionType(<span class="hljs-class">TransactionType</span>.<span class="hljs-constant">RESERVE</span>)
+                    .setAdditionalInfo(additionalInfo)
+                    .setBasket(basket)
+                    .setCustomer(customer)
+                    .setTransactionRecord(transactionRecord);
+                setTransaction.getCustomField().add(customField);
+            </div>
+        </div>
+    </div>
+
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <h3 id="redirect">Redirect</h3>
+                <p>A Redirect defines the contract of a payment setup - what is the payment for and who is fulfilling it before redirecting to PayU.
+                    Redirect is created with a `SetTransaction`.</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+                Redirect redirect = <span class="hljs-keyword">new</span> Redirect();
+                redirect.setRequest(setTransaction);
+                SetTransactionResponseMessage setTransactionResponseMessage = <span class="hljs-keyword">null</span>;
+            </div>
+        </div>
+    </div>
+    <div class="segment">
+        <div class="comments ">
+            <div class="wrapper">
+                <p>Setup a payment by posting to the APIService using a validly configured APIContext object The return object contains the result of the transaction;</p>
+            </div>
+        </div>
+        <div class="code">
+            <div class="wrapper">
+        <span class="hljs-keyword">try</span> {
+            setTransactionResponseMessage = (SetTransactionResponseMessage) redirect.setup(apiContext);
+            LOGGER.info(<span class="hljs-string">"Setup real time recurring payment with id = "</span> + setTransactionResponseMessage.getPayUReference() + <span class="hljs-string">" and result code = "</span> + setTransactionResponseMessage.getResultCode());
+
+            req.setAttribute(<span class="hljs-string">"redirectURL"</span>, redirect.getPayURedirectUrl());
+
+            ResultPrinter.addResult(req, resp, <span class="hljs-string">"Setup Real Time Recurring Payment."</span>, Redirect.getLastRequest(), Redirect.getLastResponse(), <span class="hljs-keyword">null</span>);
+        } <span class="hljs-keyword">catch</span> (PayUSOAPException ex) {
+            ResultPrinter.addResult(req, resp, <span class="hljs-string">"Setup Real Time Recurring Payment."</span>, JSONFormatter.toJSON(setTransaction), JSONFormatter.toJSON(setTransactionResponseMessage), e.getMessage());
+        }
+        <span class="hljs-keyword">return</span> setTransactionResponseMessage;
+    }
+}
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
